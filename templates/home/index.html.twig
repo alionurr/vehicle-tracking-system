@@ -1,9 +1,68 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}alionur{% endblock %}
+{% block title %}ATS{% endblock %}
 
 {% block body %}
 
-    <div>{{ name }}</div>
+{# <div class="container">
+    <div class="my-2 text-center fs-3">Araç Takip Sistemi</div>
+    <div class="row mt-3">
+        <div class="col">
+            <input type="text" class="form-control" id="name" placeholder="First name" aria-label="First name">
+        </div>
+        <div class="col">
+            <input type="text" class="form-control" name="surname" placeholder="Surname" aria-label="Surname">
+        </div>
+        <div class="col">
+            <input type="text" class="form-control" name="phone-number" placeholder="Phone Number" aria-label="phone number">
+        </div>
+    </div>
+    <button type='submit' 
+               id='submitButton'>
+            Submit
+        </button>
+    <div class="row mt-3">
+        <div class="col">
+            <select id="vehicle-brand" name="vehicle-brand" class="form-select">
+                <option selected>Choose...</option>
+            </select>
+        </div>
+        <div class="col">
+            <select id="vehicle-model" name="vehicle-model" class="form-select">
+                <option selected>Choose...</option>
+            </select>            
+        </div>
+        <div class="col">
+            <select id="date" name="date" class="form-select">
+                <option selected>Choose...</option>
+            </select>
+        </div>
+    </div>
+</div> #}
 
+{% endblock %}
+
+{% block javascripts %} 
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.4/jquery.min.js"></script>
+    <script>
+
+    $(document).ready(function(){
+        $("#submitButton").click(function(){
+            var name = $('#name').val();
+            $.ajax({
+                type: 'POST',
+                url: '/index',
+                data: {
+                    name: name
+                },
+                success: function(result){
+                    alert('asdf');
+                },
+                error: function(error){
+                    alert('asdfdasfdas');
+                },
+            });
+        });
+    });
+    </script>
 {% endblock %}
