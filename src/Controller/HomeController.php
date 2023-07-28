@@ -2,12 +2,11 @@
 
 namespace App\Controller;
 
-use App\Entity\Customer;
-use App\Entity\RepairPlace;
 use App\Entity\RepairType;
 use App\Entity\ServiceInfo;
 use App\Entity\VehicleModel;
 use App\Form\ServiceInfoType;
+use App\Service\ServiceInfoManager;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -17,43 +16,38 @@ use Symfony\Component\Routing\Annotation\Route;
 class HomeController extends AbstractController
 {
     #[Route('/index', name: 'app_home', methods: ['get','post'])]
-    public function index(Request $request, EntityManagerInterface $entityManager): Response
+    public function index(Request $request, EntityManagerInterface $entityManager, ServiceInfoManager $serviceInfoManager): Response
     {
-        
         $form = $this->createForm(ServiceInfoType::class);
         $form->handleRequest($request);
         
         if ($form->isSubmitted()) {
             
-            // ekleme işlemi olacak
             $data = $form->getData();
+            $foundCustomer = $this->_checkCustomerIfExist($data, $entityManager);
 
-            $customer = new Customer;
-            $customer->setName($data->getCustomer()->getName());
-            $customer->setSurname($data->getCustomer()->getSurname());
-            $customer->setPhoneNumber($data->getCustomer()->getPhoneNumber());
+            if ($foundCustomer) {
+                return $this->json([
+                    'alert' => 'warning',
+                    'message' => 'Bu müşteri kaydı zaten var.'
+                ]);
+            }
 
-            $entityManager->persist($customer);
+            $foundData = $this->_checkRepairPlaceIfFull($data, $entityManager, $request);
 
-            $requestData = $request->request->all();
-            $vehicleModelId = $requestData['service_info']['vehicleModel'];
-            $repairPlaceId = $requestData['service_info']['repairPlace'];
-            $vehicleModel = $entityManager->getRepository(VehicleModel::class)->find($vehicleModelId);
-            $repairPlace = $entityManager->getRepository(RepairPlace::class)->find($repairPlaceId);
-            // dd($vehicleModel);
-            $serviceInfo = new ServiceInfo;
-            $serviceInfo->setCustomer($customer);
-            $serviceInfo->setVehicleBrand($data->getVehicleBrand());
-            $serviceInfo->setVehicleModel($vehicleModel);
-            $serviceInfo->setRepairDate($data->getRepairDate());
-            $serviceInfo->setRepairType($data->getRepairType());
-            $serviceInfo->setRepairPlace($repairPlace);
-
-            $entityManager->persist($serviceInfo);
-            $entityManager->flush();
+            if ($foundData) {
+                return $this->json([
+                    'alert' => 'warning',
+                    'message' => 'Seçtiğiniz tamir tarihinde tamir yeri doludur.'
+                ]);
+            }
+            
+            // kayıt işlemi için servisi çağırıyoruz
+            $serviceInfoManager->create($data, $request, $entityManager);
 
             return $this->json([
-                'message' => 'eklendi.'
+                'alert' => 'success',
+                'message' => 'Form başarıyla kaydedildi.'
             ]);
         }
 
@@ -106,5 +100,67 @@ class HomeController extends AbstractController
             'message' => 'type seçebilirsiniz',
             'repair_places' => $models,
         ]);
+    }
+
+    // 
+    public function _checkCustomerIfExist($data, $entityManager)
+    {
+        $name = $this->_normalizeString($data->getCustomer()->getName());
+        $surname = $this->_normalizeString($data->getCustomer()->getSurname());
+
+        $queryBuilder = $entityManager->createQueryBuilder();
+        /**
+         * customer tablosunda bu isimde kayıt var mı ona bakıyoruz
+         * büyük/küçük harf ve türkçe karakterlere duyarsız bir şekilde.
+         */
+        $foundCustomer = $queryBuilder
+            ->select('c')
+            ->from('App\Entity\Customer', 'c')
+            // ->where('c.name LIKE :name')
+            // ->andWhere('c.surname LIKE :surname')
+            // ->setParameter('name', $name)
+            // ->setParameter('surname', $surname)
+            ->where($queryBuilder->expr()->like('c.name', $queryBuilder->expr()->literal('%' . $name . '%')))
+            ->where($queryBuilder->expr()->like('c.name', $queryBuilder->expr()->literal('%' . $surname . '%')))
+            ->getQuery()
+            ->getResult();
+
+        if ($foundCustomer) {
+            return true;
+        }
+        return false;
+    }
+
+    public function _normalizeString($name) {
+        // Türkçe karakterleri düzleştir ve küçük harfe çevir
+        $str = mb_strtolower($name, 'UTF-8');
+        
+        // Türkçe karakterleri normal harflere çevir
+        $turkishChars = array('ç', 'ğ', 'ı', 'i', 'ö', 'ş', 'ü');
+        $normalChars = array('c', 'g', 'i', 'i', 'o', 's', 'u');
+        $str = str_replace($turkishChars, $normalChars, $str);
+        
+        // Boşlukları temizle
+        $str = trim($str);
+        
+        return $str;
+    }
+
+    // 
+    public function _checkRepairPlaceIfFull($data, $entityManager, $request)
+    {
+        // Ajax ile gönderilen repairPlace idsini alamadığım için idyi request ile alıyorum.
+        $repairPlace = $request->request->all()['service_info']['repairPlace'];
+        $repairDate = $data->getRepairDate();
+        
+        $foundData = $entityManager->getRepository(ServiceInfo::class)->findOneBy([
+            'repairPlace' => $repairPlace,
+            'repairDate' => $repairDate
+        ]);
+
+        if ($foundData) {
+            return true;
+        }
+        return false;
     }
 }

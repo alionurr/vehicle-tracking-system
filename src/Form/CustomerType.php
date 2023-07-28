@@ -17,19 +17,19 @@ class CustomerType extends AbstractType
             ->add('name', TextType::class, [
                         'required' => true,
                         'attr' => [
-                            'placeholder' => 'Customer Name'
+                            'placeholder' => 'Adınız'
                         ],
                    ])
             ->add('surname', TextType::class, [
                 'required' => true,
                 'attr' => [
-                    'placeholder' => 'Customer Surname'
+                    'placeholder' => 'Soyadınız'
                 ],
            ])
             ->add('phoneNumber', TextType::class, [
                 'required' => true,
                 'attr' => [
-                    'placeholder' => 'Customer Phone Number'
+                    'placeholder' => 'Telefon Numaranız'
                 ],
            ])
         ;

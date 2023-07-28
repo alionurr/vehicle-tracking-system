@@ -15,8 +15,11 @@
         <div class="my-custom-class-for-errors">
             {{ form_errors(form) }}
         </div>
+
 {# {{dump(form)}} #}
+
         <h2 class="text-center my-3">Araç Takip Sistemi</h2>
+        <div id="messages"></div>
         <div class="row mt-5">
             <div class="col">
                 {{ form_widget(form.customer.name) }}
@@ -40,7 +43,7 @@
         </div>
         <div class="row">
             <div class="col">
-            <label for="service_info_repairDate">Please select repair date you want:</label>
+            <label for="service_info_repairDate">Tamir tarihi seçiniz:</label>
                 {{ form_widget(form.repairDate) }}
             </div>
         </div>
@@ -67,7 +70,7 @@
     $(document).ready(function(){
         $("#service_info_vehicleBrand").change(function(){
             $("#service_info_vehicleModel").html('');
-            var id = $('#service_info_vehicleBrand').val();
+            let id = $('#service_info_vehicleBrand').val();
             // console.log(id);
             $.ajax({
                 type: 'POST',
@@ -115,6 +118,17 @@
 
                 success: function(result){
                     console.log(result.message);
+                    $("#messages").html(
+                        `
+                            <div id="alert" class="alert alert-${result.alert}" role="${result.alert}">
+                                ${result.message}
+                            </div>
+                        `
+                    );
+                    // toastr.success(result.message);
+                    setInterval(() => {
+                        $("#alert").fadeOut();
+                    }, 5000);
                 },
                 error: function(error){
                     console.log('error');
