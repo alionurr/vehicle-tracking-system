@@ -11,15 +11,15 @@ class RepairTypeFixtures extends Fixture
     public function load(ObjectManager $manager): void
     {
         $repairType = new RepairType();
-        $repairType->setType('yağ değişimi');
+        $repairType->setName('yağ değişimi');
         $manager->persist($repairType);
 
         $repairType2 = new RepairType();
-        $repairType2->setType('lastik değişimi');
+        $repairType2->setName('lastik değişimi');
         $manager->persist($repairType2);
 
         $repairType3 = new RepairType();
-        $repairType3->setType('pasta cila');
+        $repairType3->setName('pasta cila');
         $manager->persist($repairType3);
 
         $manager->flush();

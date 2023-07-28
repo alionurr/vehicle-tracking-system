@@ -4,41 +4,59 @@
 
 {% block body %}
 
-{# <div class="container">
-    <div class="my-2 text-center fs-3">Araç Takip Sistemi</div>
-    <div class="row mt-3">
-        <div class="col">
-            <input type="text" class="form-control" id="name" placeholder="First name" aria-label="First name">
+{# Formu ekrana bastırmak için yorum satırındaki
+    şekilde değil de aşağıdaki gibi kullandım 
+    böylece formu özelleştirebildim. #}
+    
+{# {{form(form)}} #}
+
+<div class="container">
+    {{ form_start(form) }}
+        <div class="my-custom-class-for-errors">
+            {{ form_errors(form) }}
         </div>
-        <div class="col">
-            <input type="text" class="form-control" name="surname" placeholder="Surname" aria-label="Surname">
+{# {{dump(form)}} #}
+        <h2 class="text-center my-3">Araç Takip Sistemi</h2>
+        <div class="row mt-5">
+            <div class="col">
+                {{ form_widget(form.customer.name) }}
+            </div>
+            <div class="col">
+                {{ form_widget(form.customer.surname) }}
+            </div>
         </div>
-        <div class="col">
-            <input type="text" class="form-control" name="phone-number" placeholder="Phone Number" aria-label="phone number">
+        <div class="row mt-3">
+            <div class="col-6">
+                {{ form_widget(form.customer.phoneNumber) }}
+            </div>
         </div>
+        <div class="row my-3">
+            <div class="col">
+                {{ form_widget(form.vehicleBrand) }}
+            </div>
+            <div class="col">
+                {{ form_widget(form.vehicleModel) }}
+            </div>
+        </div>
+        <div class="row">
+            <div class="col">
+            <label for="service_info_repairDate">Please select repair date you want:</label>
+                {{ form_widget(form.repairDate) }}
+            </div>
+        </div>
+        <div class="row my-3">
+            <div class="col">
+                {{ form_widget(form.repairType) }}
+            </div>
+            <div class="col">
+                {{ form_widget(form.repairPlace) }}
+            </div>
+        </div>
+    <div class="col-12">
+        <button type="submit" id="submitForm" class="btn btn-primary">Sign in</button>
     </div>
-    <button type='submit' 
-               id='submitButton'>
-            Submit
-        </button>
-    <div class="row mt-3">
-        <div class="col">
-            <select id="vehicle-brand" name="vehicle-brand" class="form-select">
-                <option selected>Choose...</option>
-            </select>
-        </div>
-        <div class="col">
-            <select id="vehicle-model" name="vehicle-model" class="form-select">
-                <option selected>Choose...</option>
-            </select>            
-        </div>
-        <div class="col">
-            <select id="date" name="date" class="form-select">
-                <option selected>Choose...</option>
-            </select>
-        </div>
-    </div>
-</div> #}
+    {{ form_end(form) }}
+</div>
 
 {% endblock %}
 
@@ -47,19 +65,59 @@
     <script>
 
     $(document).ready(function(){
-        $("#submitButton").click(function(){
-            var name = $('#name').val();
+        $("#service_info_vehicleBrand").change(function(){
+            $("#service_info_vehicleModel").html('');
+            var id = $('#service_info_vehicleBrand').val();
+            // console.log(id);
+            $.ajax({
+                type: 'POST',
+                url: '/getModel',
+                data: {
+                    id: id
+                },
+                success: function(result){
+                    Object.entries(result.vehicle_models).map((m) => $("#service_info_vehicleModel").append(`<option value="${m[0]}">${m[1]}</option>`))
+                },
+                error: function(error){
+                    alert('error');
+                },
+            });
+        });
+
+        $("#service_info_repairType").change(function(){
+            $("#service_info_repairPlace").html('');
+            var repairTypeId = $('#service_info_repairType').val();
+            // console.log(repairTypeId);
+            $.ajax({
+                type: 'POST',
+                url: '/getRepairPlace',
+                data: {
+                    id: repairTypeId
+                },
+                success: function(result){
+                    Object.entries(result.repair_places).map((p) => $("#service_info_repairPlace").append(`<option value="${p[0]}">${p[1]}</option>`))
+                    
+                },
+                error: function(error){
+                    alert('error');
+                },
+            });
+        });
+
+        $("form[name=service_info]").on('submit', function(e){
+            e.preventDefault();
             $.ajax({
                 type: 'POST',
                 url: '/index',
-                data: {
-                    name: name
-                },
+                data: new FormData(this),
+                processData: false,
+                contentType: false,
+
                 success: function(result){
-                    alert('asdf');
+                    console.log(result.message);
                 },
                 error: function(error){
-                    alert('asdfdasfdas');
+                    console.log('error');
                 },
             });
         });

@@ -2,24 +2,55 @@
 
 namespace App\Form;
 
+use App\Entity\RepairType;
+use App\Entity\RepairPlace;
 use App\Entity\ServiceInfo;
+use App\Entity\VehicleBrand;
+use App\Entity\VehicleModel;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\FormBuilderInterface;
+use Symfony\Bridge\Doctrine\Form\Type\EntityType;
 use Symfony\Component\OptionsResolver\OptionsResolver;
+use Symfony\Component\Form\Extension\Core\Type\DateTimeType;
 
 class ServiceInfoType extends AbstractType
 {
     public function buildForm(FormBuilderInterface $builder, array $options): void
     {
         $builder
-            ->add('customerId')
-            ->add('vehicleBrand')
-            ->add('vehicleModel')
-            ->add('repairType')
-            ->add('repairPlace')
-            ->add('repairDate')
-            ->add('createdAt')
-            ->add('updatedAt')
+            ->add('customer', CustomerType::class)
+            ->add('vehicleBrand', EntityType::class, [
+                'class' => VehicleBrand::class,
+                'choice_label' => 'name',
+                'placeholder' => 'Choose a vehicle brand',                
+            ])
+
+            ->add('vehicleModel', EntityType::class, [
+                'placeholder' => 'Choose a vehicle model',
+                'class' => VehicleModel::class,
+                'choice_label' => 'name',
+                'choices' => [],
+            ])
+
+            ->add('repairDate', DateTimeType::class, [
+                'years' => range(date('y'), 24),
+                'months' => range(date('m'), 12),
+                'days' => range(date('d'), 30),
+                'hours' => range(1, 24),
+                'minutes' => range(0, 59,30),
+            ])
+
+            ->add('repairType', EntityType::class, [
+                'class' => RepairType::class,
+                'choice_label' => 'name',
+                'placeholder' => 'Choose a repair type',
+            ])
+            ->add('repairPlace', EntityType::class, [
+                'placeholder' => 'Choose a repair place',
+                'class' => RepairPlace::class,
+                'choice_label' => 'name',
+                'choices' => [],
+            ])
         ;
     }
 
@@ -29,4 +60,5 @@ class ServiceInfoType extends AbstractType
             'data_class' => ServiceInfo::class,
         ]);
     }
+    
 }

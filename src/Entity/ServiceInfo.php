@@ -5,8 +5,10 @@ namespace App\Entity;
 use App\Repository\ServiceInfoRepository;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Entity(repositoryClass: ServiceInfoRepository::class)]
+#[ORM\HasLifecycleCallbacks]
 class ServiceInfo
 {
     #[ORM\Id]
@@ -14,26 +16,32 @@ class ServiceInfo
     #[ORM\Column]
     private ?int $id = null;
 
+    #[Assert\NotBlank]
     #[ORM\ManyToOne(inversedBy: 'serviceInfos')]
     #[ORM\JoinColumn(nullable: false)]
     private ?Customer $customer = null;
 
+    #[Assert\NotBlank]
     #[ORM\ManyToOne(inversedBy: 'serviceInfos')]
     #[ORM\JoinColumn(nullable: false)]
     private ?VehicleBrand $vehicleBrand = null;
 
+    #[Assert\NotBlank]
     #[ORM\ManyToOne(inversedBy: 'serviceInfos')]
     #[ORM\JoinColumn(nullable: false)]
     private ?VehicleModel $vehicleModel = null;
 
+    #[Assert\NotBlank]
     #[ORM\ManyToOne(inversedBy: 'serviceInfos')]
     #[ORM\JoinColumn(nullable: false)]
     private ?RepairType $repairType = null;
 
+    #[Assert\NotBlank]
     #[ORM\ManyToOne(inversedBy: 'serviceInfos')]
     #[ORM\JoinColumn(nullable: false)]
     private ?RepairPlace $repairPlace = null;
 
+    #[Assert\NotBlank]
     #[ORM\Column(type: Types::DATETIME_MUTABLE)]
     private ?\DateTimeInterface $repairDate = null;
 
@@ -142,5 +150,14 @@ class ServiceInfo
         $this->updatedAt = $updatedAt;
 
         return $this;
+    }
+
+    #[ORM\PrePersist]
+    public function updatedTimestamps(): void
+    {
+        $this->setUpdatedAt(new \DateTime('now'));    
+        if ($this->getCreatedAt() === null) {
+            $this->setCreatedAt(new \DateTime('now'));
+        }
     }
 }
