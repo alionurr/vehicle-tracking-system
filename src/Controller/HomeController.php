@@ -2,9 +2,8 @@
 
 namespace App\Controller;
 
+use App\Entity\RepairPlace;
 use App\Entity\RepairType;
-use App\Entity\ServiceInfo;
-use App\Entity\Customer;
 use App\Entity\VehicleModel;
 use App\Form\ServiceInfoType;
 use App\Service\ServiceInfoManager;
@@ -16,16 +15,16 @@ use Symfony\Component\Routing\Annotation\Route;
 
 class HomeController extends AbstractController
 {
-    #[Route('/index', name: 'app_home', methods: ['get','post'])]
-    public function index(Request $request, EntityManagerInterface $entityManager, ServiceInfoManager $serviceInfoManager): Response
+    #[Route('/', name: 'app_home', methods: ['get', 'post'])]
+    public function index(Request $request, ServiceInfoManager $serviceInfoManager): Response
     {
         $form = $this->createForm(ServiceInfoType::class);
         $form->handleRequest($request);
-        
+
         if ($form->isSubmitted()) {
-            
+
             $data = $form->getData();
-            $foundCustomer = $this->_checkCustomerIfExist($data, $entityManager);
+            $foundCustomer = $serviceInfoManager->_checkCustomerIfExist($data->getCustomer());
 
             if ($foundCustomer) {
                 return $this->json([
@@ -34,7 +33,7 @@ class HomeController extends AbstractController
                 ]);
             }
 
-            $foundData = $this->_checkRepairPlaceIfFull($data, $entityManager, $request);
+            $foundData = $serviceInfoManager->_checkRepairPlaceIfFull($data->getRepairDate(), $request->request->all()['service_info']['repairPlace']);
 
             if ($foundData) {
                 return $this->json([
@@ -42,9 +41,14 @@ class HomeController extends AbstractController
                     'message' => 'Seçtiğiniz tamir tarihinde tamir yeri doludur.'
                 ]);
             }
-            
+
+
+            $requestData = $request->request->all();
+            $data->setVehicleModel($serviceInfoManager->_getDataFromRequest(VehicleModel::class, $requestData['service_info']['vehicleModel']));
+            $data->setRepairPlace($serviceInfoManager->_getDataFromRequest(RepairPlace::class, $requestData['service_info']['repairPlace']));
+
             // kayıt işlemi için servisi çağırıyoruz
-            $serviceInfoManager->create($data, $request, $entityManager);
+            $serviceInfoManager->create($data);
 
             return $this->json([
                 'alert' => 'success',
@@ -58,10 +62,10 @@ class HomeController extends AbstractController
     }
 
     /** 
-    *   getvehiclemodels
-    *   Araç markası seçildiğinde
-    *   araç modelini db'den alan method
-    */
+     *   getvehiclemodels
+     *   Araç markası seçildiğinde
+     *   araç modelini db'den alan method
+     */
     #[Route('/getModel', name: 'get_model', methods: 'post')]
     public function getVehicleModel(Request $request, EntityManagerInterface $entityManager): Response
     {
@@ -82,9 +86,9 @@ class HomeController extends AbstractController
     }
 
     /** 
-    *   tamir türü seçildiğinde
-    *   tamir yerini db'den alan method
-    */
+     *   tamir türü seçildiğinde
+     *   tamir yerini db'den alan method
+     */
     #[Route('/getRepairPlace', name: 'get_repair_place', methods: 'post')]
     public function getRepairPlace(Request $request, EntityManagerInterface $entityManager): Response
     {
@@ -102,40 +106,5 @@ class HomeController extends AbstractController
             'message' => 'type seçebilirsiniz',
             'repair_places' => $models,
         ]);
-    }
-
-    public function _checkCustomerIfExist($data, $entityManager)
-    {
-        $name = $data->getCustomer()->getName();
-        $surname = $data->getCustomer()->getSurname();
-
-        $foundCustomer = $entityManager->getRepository(Customer::class)->findOneBy([
-            'name' => $name,
-            'surname' => $surname,
-        ]);
-    
-
-        if ($foundCustomer) {
-            return true;
-        }
-        return false;
-    }
-
-
-    public function _checkRepairPlaceIfFull($data, $entityManager, $request)
-    {
-        // Ajax ile gönderilen repairPlace idsini alamadığım için idyi request ile alıyorum.
-        $repairPlace = $request->request->all()['service_info']['repairPlace'];
-        $repairDate = $data->getRepairDate();
-        
-        $foundData = $entityManager->getRepository(ServiceInfo::class)->findOneBy([
-            'repairPlace' => $repairPlace,
-            'repairDate' => $repairDate
-        ]);
-
-        if ($foundData) {
-            return true;
-        }
-        return false;
     }
 }

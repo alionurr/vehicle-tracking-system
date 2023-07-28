@@ -2,21 +2,13 @@
 
 {% block title %}ATS{% endblock %}
 
-{% block body %}
-
-{# Formu ekrana bastırmak için yorum satırındaki
-    şekilde değil de aşağıdaki gibi kullandım 
-    böylece formu özelleştirebildim. #}
-    
-{# {{form(form)}} #}
+{% block body %}    
 
 <div class="container">
     {{ form_start(form) }}
         <div class="my-custom-class-for-errors">
             {{ form_errors(form) }}
         </div>
-
-{# {{dump(form)}} #}
 
         <h2 class="text-center my-3">Araç Takip Sistemi</h2>
         <div id="messages"></div>
@@ -111,7 +103,7 @@
             e.preventDefault();
             $.ajax({
                 type: 'POST',
-                url: '/index',
+                url: '/',
                 data: new FormData(this),
                 processData: false,
                 contentType: false,
