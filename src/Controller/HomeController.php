@@ -4,6 +4,7 @@ namespace App\Controller;
 
 use App\Entity\RepairType;
 use App\Entity\ServiceInfo;
+use App\Entity\Customer;
 use App\Entity\VehicleModel;
 use App\Form\ServiceInfoType;
 use App\Service\ServiceInfoManager;
@@ -56,7 +57,8 @@ class HomeController extends AbstractController
         ]);
     }
 
-    /** getvehiclemodels
+    /** 
+    *   getvehiclemodels
     *   Araç markası seçildiğinde
     *   araç modelini db'den alan method
     */
@@ -102,28 +104,16 @@ class HomeController extends AbstractController
         ]);
     }
 
-    // 
     public function _checkCustomerIfExist($data, $entityManager)
     {
-        $name = $this->_normalizeString($data->getCustomer()->getName());
-        $surname = $this->_normalizeString($data->getCustomer()->getSurname());
+        $name = $data->getCustomer()->getName();
+        $surname = $data->getCustomer()->getSurname();
 
-        $queryBuilder = $entityManager->createQueryBuilder();
-        /**
-         * customer tablosunda bu isimde kayıt var mı ona bakıyoruz
-         * büyük/küçük harf ve türkçe karakterlere duyarsız bir şekilde.
-         */
-        $foundCustomer = $queryBuilder
-            ->select('c')
-            ->from('App\Entity\Customer', 'c')
-            // ->where('c.name LIKE :name')
-            // ->andWhere('c.surname LIKE :surname')
-            // ->setParameter('name', $name)
-            // ->setParameter('surname', $surname)
-            ->where($queryBuilder->expr()->like('c.name', $queryBuilder->expr()->literal('%' . $name . '%')))
-            ->where($queryBuilder->expr()->like('c.name', $queryBuilder->expr()->literal('%' . $surname . '%')))
-            ->getQuery()
-            ->getResult();
+        $foundCustomer = $entityManager->getRepository(Customer::class)->findOneBy([
+            'name' => $name,
+            'surname' => $surname,
+        ]);
+    
 
         if ($foundCustomer) {
             return true;
@@ -131,22 +121,7 @@ class HomeController extends AbstractController
         return false;
     }
 
-    public function _normalizeString($name) {
-        // Türkçe karakterleri düzleştir ve küçük harfe çevir
-        $str = mb_strtolower($name, 'UTF-8');
-        
-        // Türkçe karakterleri normal harflere çevir
-        $turkishChars = array('ç', 'ğ', 'ı', 'i', 'ö', 'ş', 'ü');
-        $normalChars = array('c', 'g', 'i', 'i', 'o', 's', 'u');
-        $str = str_replace($turkishChars, $normalChars, $str);
-        
-        // Boşlukları temizle
-        $str = trim($str);
-        
-        return $str;
-    }
 
-    // 
     public function _checkRepairPlaceIfFull($data, $entityManager, $request)
     {
         // Ajax ile gönderilen repairPlace idsini alamadığım için idyi request ile alıyorum.

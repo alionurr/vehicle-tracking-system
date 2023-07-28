@@ -71,7 +71,7 @@
         $("#service_info_vehicleBrand").change(function(){
             $("#service_info_vehicleModel").html('');
             let id = $('#service_info_vehicleBrand').val();
-            // console.log(id);
+
             $.ajax({
                 type: 'POST',
                 url: '/getModel',
@@ -90,7 +90,7 @@
         $("#service_info_repairType").change(function(){
             $("#service_info_repairPlace").html('');
             var repairTypeId = $('#service_info_repairType').val();
-            // console.log(repairTypeId);
+
             $.ajax({
                 type: 'POST',
                 url: '/getRepairPlace',
@@ -117,7 +117,6 @@
                 contentType: false,
 
                 success: function(result){
-                    console.log(result.message);
                     $("#messages").html(
                         `
                             <div id="alert" class="alert alert-${result.alert}" role="${result.alert}">
@@ -125,7 +124,7 @@
                             </div>
                         `
                     );
-                    // toastr.success(result.message);
+                    
                     setInterval(() => {
                         $("#alert").fadeOut();
                     }, 5000);

@@ -37,7 +37,7 @@ class ServiceInfoType extends AbstractType
                 'months' => range(date('m'), 12),
                 'days' => range(1, 30),
                 'hours' => range(1, 24),
-                'minutes' => range(0, 59,30),
+                'minutes' => range(0, 59, 30),
             ])
 
             ->add('repairType', EntityType::class, [

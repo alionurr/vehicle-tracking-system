@@ -15,11 +15,11 @@ class CustomerType extends AbstractType
     {
         $builder
             ->add('name', TextType::class, [
-                        'required' => true,
-                        'attr' => [
-                            'placeholder' => 'Adınız'
-                        ],
-                   ])
+                'required' => true,
+                'attr' => [
+                    'placeholder' => 'Adınız'
+                ],
+            ])
             ->add('surname', TextType::class, [
                 'required' => true,
                 'attr' => [

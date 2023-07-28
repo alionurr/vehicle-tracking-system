@@ -25,7 +25,7 @@ class ServiceInfoManager
         $repairPlaceId = $requestData['service_info']['repairPlace'];
         $vehicleModel = $entityManager->getRepository(VehicleModel::class)->find($vehicleModelId);
         $repairPlace = $entityManager->getRepository(RepairPlace::class)->find($repairPlaceId);
-        // dd($vehicleModel);
+
         $serviceInfo = new ServiceInfo;
         $serviceInfo->setCustomer($customer);
         $serviceInfo->setVehicleBrand($data->getVehicleBrand());
